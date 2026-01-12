@@ -1,0 +1,13 @@
+[project]
+name = "nestedlearning"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "torch>=2.9.1",
+    "yfinance>=0.2.66",
+]

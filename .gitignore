@@ -1,0 +1,34 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# Jupyter / temp
+.ipynb_checkpoints/
+
+# Logs / outputs
+*.log
+*.png
+*.jpg
+*.csv
+
+# Everything else Python (ignore all .py by default)
+*.py
+
+# But keep ONLY this script
+!stockprediction4withvolumeandforgetgate.py
+
+# Keep README
+!README.md
