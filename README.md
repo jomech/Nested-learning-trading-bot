@@ -19,3 +19,190 @@ The Stagnation: High decay rates ($\gamma=0.9$) make the model "stubborn.
 4. When to Use This?Use CaseStandard Transformer (GPT-4)Nested Learning (HOPE)Long Context Recall🏆 Winner (Perfect retrieval)❌ Struggles (Compression loss)Real-Time Adaptation❌ Struggles (Frozen weights)🏆 Winner (Learns on the fly)Memory Efficiency❌ Low (Grows with length)🏆 High (Constant size)
 
 5. Final Mental ModelThink of Nested Learning as giving the AI a "scratchpad" (Memory Matrix) and a "pencil" (Neural Optimizer).Instead of just reading the book (Input), it actively writes notes on the scratchpad as it goes. If it sees something surprising, it erases old irrelevant notes and writes the new info in bold. The goal of training is simply to teach the AI how to take better notes.
+
+DIAGRAM
+
+INPUT MARKET STATE
+─────────────────────────────────────────────
+
+Return(t-1)
+Volatility(t-1)
+Volume(t-1)
+      │
+      ▼
+┌──────────────────────────────┐
+│ Rolling 60-Day Normalizer    │
+│                              │
+│ Return:     (x-μ)/(2σ)       │
+│ Volatility: (x-μ)/(2σ)       │
+│ Volume:     (x-μ)/(2σ)       │
+└──────────────┬───────────────┘
+               │
+               ▼
+         x ∈ R³
+               │
+               ▼
+┌──────────────────────────────┐
+│ Encoder                      │
+│ Linear(3 → 16)               │
+│ tanh                         │
+└──────────────┬───────────────┘
+               │
+               ▼
+          x ∈ R¹⁶
+               │
+               ▼
+
+═══════════════════════════════════════════════
+             HOPE LAYER 1
+═══════════════════════════════════════════════
+
+       ┌──────────────┐
+       │   HEAD 1     │
+       │              │
+       │ M₁ @ x       │
+       │    ↓         │
+       │   pred₁      │
+       │    ↓         │
+       │ error₁       │
+       │    ↓         │
+       │ update MLP   │
+       │    ↓         │
+       │ update₁      │
+       │              │
+       │ forget gate₁ │
+       │    ↓         │
+       │ g₁           │
+       │    ↓         │
+       │ M₁new        │
+       └──────┬───────┘
+              │
+              │
+       ┌──────▼───────┐
+       │   HEAD 2     │
+       │      ...     │
+       └──────┬───────┘
+              │
+       ┌──────▼───────┐
+       │   HEAD 3     │
+       │      ...     │
+       └──────┬───────┘
+              │
+       ┌──────▼───────┐
+       │   HEAD 4     │
+       │      ...     │
+       └──────┬───────┘
+              │
+              ▼
+     ┌───────────────────┐
+     │ Attention Network │
+     │ 16 → 16 → 4       │
+     │ tanh + softmax    │
+     └─────────┬─────────┘
+               │
+               ▼
+          α₁ α₂ α₃ α₄
+               │
+               ▼
+        Weighted Sum
+               │
+               ▼
+        Projection 16→16
+               │
+               ▼
+             + x
+               │
+               ▼
+          LayerNorm
+               │
+               ▼
+
+═══════════════════════════════════════════════
+             HOPE LAYER 2
+═══════════════════════════════════════════════
+
+       Same four-head structure
+               │
+               ▼
+        Attention mechanism
+               │
+               ▼
+          Weighted Sum
+               │
+               ▼
+          Projection
+               │
+               +
+               │
+               ▼
+           LayerNorm
+               │
+               ▼
+
+═══════════════════════════════════════════════
+
+             DECODER
+               │
+               ▼
+          Linear(16 → 3)
+               │
+               ▼
+
+       PREDICTED MARKET STATE
+
+       ┌───────────────────┐
+       │ Predicted Return  │
+       │ Predicted Vol.    │
+       │ Predicted Volume  │
+       └───────────────────┘
+
+SUB BLOCK
+
+                    x_t
+                     │
+                     ▼
+                 ┌───────┐
+                 │ M_t   │
+                 │16×16  │
+                 └───┬───┘
+                     │
+                     ▼
+                 M_t x_t
+                     │
+                     ▼
+                   pred
+                     │
+                     ▼
+              pred - x_t
+                     │
+                  detach
+                     │
+                     ▼
+                   error
+                     │
+                     ├──────────────┐
+                     │              │
+                     ▼              ▼
+                     └──► CONCAT ◄──┘
+                           │
+                         [32]
+                           │
+              ┌────────────┴─────────────┐
+              │                          │
+              ▼                          ▼
+       UPDATE NETWORK              FORGET GATE
+              │                          │
+        32→32→16→256                 32→16→1
+              │                          │
+            tanh                       sigmoid
+              │                          │
+              ▼                          ▼
+             U_t                        g_t
+              │                          │
+              └────────────┬─────────────┘
+                           │
+                           ▼
+                 ┌───────────────────┐
+                 │ M(t+1) =          │
+                 │ gM(t)+(1-g)U(t)  │
+                 └───────────────────┘
