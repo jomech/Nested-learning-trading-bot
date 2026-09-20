@@ -206,3 +206,20 @@ SUB BLOCK
                  │ M(t+1) =          │
                  │ gM(t)+(1-g)U(t)  │
                  └───────────────────┘
+
+TWO LEVELS OF ADAPTABILITY
+
+                    MARKET STATE
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+       FORGET GATE              ATTENTION
+              │                     │
+              ▼                     ▼
+ "How much should this       "Which memory
+  head remember?"             should I trust?"
+              │                     │
+              └──────────┬──────────┘
+                         ▼
+                  FINAL PREDICTION
