@@ -1,3 +1,5 @@
+TWITTER POST - https://x.com/abhaymathew/status/2000476419395375541
+
 Executive Summary: Nested Learning (The "HOPE" Architecture)
 1. The Core Thesis: "Everything is an Optimizer"Standard Deep Learning separates Architecture (layers that process data) from Optimization (algorithms that learn). This paper removes that barrier.
 Old View: Layers are static feature extractors (like libraries) that wait for an external teacher.
